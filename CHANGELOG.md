@@ -1,3 +1,6 @@
+[2.0.0]
+* Change from BIND to CoreDNS (with hosts extensions)
+
 [1.3.0]
 * Add basic CI integration
 * Add usage example for docker-compose

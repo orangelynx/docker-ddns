@@ -2,14 +2,12 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -17,7 +15,7 @@ import (
 var appConfig = &Config{}
 
 func main() {
-	appConfig.LoadConfig("/etc/dyndns.json")
+	appConfig.LoadConfig("config.json")
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/update", Update).Methods("GET")
@@ -27,6 +25,7 @@ func main() {
 	router.HandleFunc("/v2/update", DynUpdate).Methods("GET")
 	router.HandleFunc("/v3/update", DynUpdate).Methods("GET")
 
+	// TODO: Change hard coded listening address and port.
 	log.Println(fmt.Sprintf("Serving dyndns REST services on 0.0.0.0:8080..."))
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -107,32 +106,31 @@ func Update(w http.ResponseWriter, r *http.Request) {
 func UpdateRecord(domain string, ipaddr string, addrType string) string {
 	log.Println(fmt.Sprintf("%s record update request: %s -> %s", addrType, domain, ipaddr))
 
-	f, err := ioutil.TempFile(os.TempDir(), "dyndns")
+	entries := []string{fmt.Sprintf("%s    %s", ipaddr, domain)}
+
+	file, err := os.OpenFile(appConfig.HostsFile, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
-		return err.Error()
+		log.Fatal(err)
+		return "Hosts file not writable"
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if !strings.Contains(scanner.Text(), domain) {
+			entries = append(entries, scanner.Text())
+		}
 	}
 
-	defer os.Remove(f.Name())
-	w := bufio.NewWriter(f)
+	file.Truncate(0)
+	file.Seek(0, os.SEEK_SET)
 
-	w.WriteString(fmt.Sprintf("server %s\n", appConfig.Server))
-	w.WriteString(fmt.Sprintf("zone %s\n", appConfig.Zone))
-	w.WriteString(fmt.Sprintf("update delete %s.%s %s\n", domain, appConfig.Domain, addrType))
-	w.WriteString(fmt.Sprintf("update add %s.%s %v %s %s\n", domain, appConfig.Domain, appConfig.RecordTTL, addrType, ipaddr))
-	w.WriteString("send\n")
+	w := bufio.NewWriter(file)
+	for _, line := range entries {
+		fmt.Fprintln(w, line)
+	}
 
 	w.Flush()
-	f.Close()
 
-	cmd := exec.Command(appConfig.NsupdateBinary, f.Name())
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err = cmd.Run()
-	if err != nil {
-		return err.Error() + ": " + stderr.String()
-	}
-
-	return out.String()
+	return ""
 }

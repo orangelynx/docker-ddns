@@ -1,7 +1,4 @@
-# Dynamic DNS with Docker, Go and Bind9
-
-![DockerHub build status](https://dockerbuildbadges.quelltext.eu/status.svg?organization=davd&repository=docker-ddns)
-![Travis build status](https://travis-ci.com/dprandzioch/docker-ddns.svg?branch=master)
+# Dynamic DNS with Docker, Go and CoreDNS
 
 This package allows you to set up a dynamic DNS server that allows you to connect to
 devices at home from anywhere in the world. All you need is a cheap VPS, a domain and access to it's nameserver.
@@ -10,35 +7,10 @@ devices at home from anywhere in the world. All you need is a cheap VPS, a domai
 
 ## Installation
 
-You can either take the image from DockerHub or build it on your own.
-
-### Using DockerHub
-
-Just customize this to your needs and run:
-
-```
-docker run -it -d \
-    -p 8080:8080 \
-    -p 53:53 \
-    -p 53:53/udp \
-    -e SHARED_SECRET=changeme \
-    -e ZONE=example.org \
-    -e RECORD_TTL=3600 \
-    --name=dyndns \
-    davd/docker-ddns:latest
-```
-
-If you want to persist DNS configuration across container recreation, add `-v /somefolder:/var/cache/bind`. If you are experiencing any 
-issues updating DNS configuration using the API (`NOTAUTH` and `SERVFAIL`), make sure to add writing permissions for root (UID=0) to your 
-persistent storage (e.g. `chmod -R a+w /somefolder`).
-
-You can also use Compose / Swarm to set up this project. For more information and an example `docker-compose.yml` with persistent data 
-storage, please refer to this file: https://github.com/dprandzioch/docker-ddns/blob/master/docker-compose.yml
-
 ### Build from source / GitHub
 
 ```
-git clone https://github.com/dprandzioch/docker-ddns
+git clone https://github.com/orangelynx/docker-ddns
 git checkout master # Make sure to build the latest stable release
 cd docker-ddns
 $EDITOR envfile

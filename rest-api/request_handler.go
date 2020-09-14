@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"dyndns/ipparser"
+	"github.com/orangelynx/docker-ddns/rest-api/ipparser"
 )
 
 type RequestDataExtractor struct {
@@ -168,4 +168,3 @@ func isPrivateSubnet(ipAddress net.IP) bool {
 	}
 	return false
 }
-

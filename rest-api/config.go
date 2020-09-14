@@ -6,12 +6,8 @@ import (
 )
 
 type Config struct {
-	SharedSecret   string
-	Server         string
-	Zone           string
-	Domain         string
-	NsupdateBinary string
-	RecordTTL      int
+	SharedSecret string
+	HostsFile    string
 }
 
 func (conf *Config) LoadConfig(path string) {
