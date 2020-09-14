@@ -15,7 +15,11 @@ import (
 var appConfig = &Config{}
 
 func main() {
-	appConfig.LoadConfig("config.json")
+	if len(os.Args) < 2 {
+		appConfig.LoadConfig("config.json")
+	} else {
+		appConfig.LoadConfig(os.Args[1])
+	}
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/update", Update).Methods("GET")

@@ -1,5 +1,5 @@
 image:
-	docker build -t davd/docker-ddns:latest .
+	docker build -t docker-ddns:latest .
 
 console:
 	docker run -it -p 8080:8080 -p 53:53 -p 53:53/udp --rm davd/docker-ddns:latest bash
